@@ -135,6 +135,8 @@ from datetime import timedelta
 
 ACCESS_TOKEN_LIFETIME = timedelta(minutes=60)
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://task-manager-three-mu-58.vercel.app",
 ]
 REST_FRAMEWORK = {
