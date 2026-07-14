@@ -137,31 +137,7 @@ task-manager/
 
 ---
 
-# 📸 Application Screenshots
 
-### Login Page
-
-*(Add Screenshot Here)*
-
----
-
-### Register Page
-
-*(Add Screenshot Here)*
-
----
-
-### Dashboard
-
-*(Add Screenshot Here)*
-
----
-
-### Dark Mode
-
-*(Add Screenshot Here)*
-
----
 
 # 📦 Installation Guide
 
