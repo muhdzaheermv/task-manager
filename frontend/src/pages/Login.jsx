@@ -47,7 +47,7 @@ function Login() {
           </div>
 
           <h1 className="text-5xl font-extrabold text-slate-900 mt-8 leading-tight">
-            Welcome Back
+            Welcome TaskFlow
           </h1>
 
           <p className="text-slate-600 mt-6 text-lg leading-8">
