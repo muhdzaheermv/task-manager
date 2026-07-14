@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+import Header from "../components/Header";
+import ProgressCard from "../components/ProgressCard";
+import TaskForm from "../components/TaskForm";
+import TaskCard from "../components/TaskCard";
+import SearchBar from "../components/SearchBar";
+import EmptyState from "../components/EmptyState";
+
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -12,7 +19,18 @@ function Dashboard() {
     title: "",
     description: "",
     priority: "Medium",
+    due_date: "",
   });
+
+  const [search, setSearch] = useState("");
+
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   useEffect(() => {
     fetchTasks();
@@ -55,6 +73,7 @@ function Dashboard() {
         title: "",
         description: "",
         priority: "Medium",
+        due_date: "",
       });
 
       fetchTasks();
@@ -71,6 +90,7 @@ function Dashboard() {
       title: task.title,
       description: task.description,
       priority: task.priority,
+      due_date: task.due_date || "",
     });
 
     window.scrollTo({
@@ -80,11 +100,7 @@ function Dashboard() {
   };
 
   const deleteTask = async (id) => {
-    const confirmDelete = window.confirm(
-      "Delete this task?"
-    );
-
-    if (!confirmDelete) return;
+    if (!window.confirm("Delete this task?")) return;
 
     try {
       await api.delete(`tasks/${id}/`);
@@ -109,154 +125,104 @@ function Dashboard() {
   const logout = () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
-
     navigate("/login");
   };
 
+  const completedTasks = tasks.filter((task) => task.completed).length;
+
+  const progress =
+    tasks.length === 0
+      ? 0
+      : Math.round((completedTasks / tasks.length) * 100);
+
+  const filteredTasks = tasks.filter((task) =>
+    task.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="container mt-5">
+    <div
+      className={`min-h-screen transition-all duration-300 ${
+        darkMode
+          ? "bg-slate-900"
+          : "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Task Manager</h2>
+        {/* Header */}
+        <Header
+          logout={logout}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
 
-        <button
-          className="btn btn-danger"
-          onClick={logout}
-        >
-          Logout
-        </button>
-      </div>
+        {/* Hero / Progress */}
+        <div className="mt-8">
+          <ProgressCard
+            progress={progress}
+            darkMode={darkMode}
+          />
+        </div>
 
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
+        {/* Main Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
 
-          <h4 className="mb-3">
-            {editingId ? "Edit Task" : "Add Task"}
-          </h4>
-
-          <form onSubmit={handleSubmit}>
-
-            <input
-              type="text"
-              className="form-control mb-3"
-              placeholder="Task Title"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              required
+          {/* Left Side */}
+          <div className="space-y-6">
+            <TaskForm
+              form={form}
+              editingId={editingId}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              darkMode={darkMode}
             />
+          </div>
 
-            <textarea
-              className="form-control mb-3"
-              placeholder="Description"
-              rows="3"
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-            ></textarea>
+          {/* Right Side */}
+          <div className="lg:col-span-2">
 
-            <select
-              className="form-select mb-3"
-              name="priority"
-              value={form.priority}
-              onChange={handleChange}
+            <div
+              className={`rounded-[30px] shadow-xl p-8 transition-all duration-300 ${
+                darkMode
+                  ? "bg-slate-800"
+                  : "bg-white/90 backdrop-blur-lg"
+              }`}
             >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
+              <SearchBar
+                search={search}
+                setSearch={setSearch}
+                darkMode={darkMode}
+              />
 
-            <button
-              type="submit"
-              className="btn btn-success w-100"
-            >
-              {editingId ? "Update Task" : "Add Task"}
-            </button>
+              <div className="mt-8">
 
-          </form>
-
-        </div>
-      </div>
-
-      <h4 className="mb-3">My Tasks</h4>
-
-      {tasks.length === 0 ? (
-        <div className="alert alert-info">
-          No Tasks Found
-        </div>
-      ) : (
-        tasks.map((task) => (
-          <div
-            key={task.id}
-            className="card shadow-sm mb-3"
-          >
-            <div className="card-body">
-
-              <h5>{task.title}</h5>
-
-              <p>{task.description}</p>
-
-              <span
-                className={`badge ${
-                  task.priority === "High"
-                    ? "bg-danger"
-                    : task.priority === "Medium"
-                    ? "bg-warning text-dark"
-                    : "bg-success"
-                }`}
-              >
-                {task.priority}
-              </span>
-
-              <p className="mt-3">
-                Status :
-                {" "}
-                {task.completed ? (
-                  <span className="text-success fw-bold">
-                    Completed
-                  </span>
+                {filteredTasks.length === 0 ? (
+                  <EmptyState darkMode={darkMode} />
                 ) : (
-                  <span className="text-warning fw-bold">
-                    Pending
-                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {filteredTasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        editTask={editTask}
+                        deleteTask={deleteTask}
+                        toggleComplete={toggleComplete}
+                        darkMode={darkMode}
+                      />
+                    ))}
+
+                  </div>
                 )}
-              </p>
-
-              <div className="d-flex gap-2 flex-wrap">
-
-                <button
-                  className="btn btn-primary"
-                  onClick={() => editTask(task)}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className={`btn ${
-                    task.completed
-                      ? "btn-warning"
-                      : "btn-success"
-                  }`}
-                  onClick={() => toggleComplete(task)}
-                >
-                  {task.completed
-                    ? "Mark Pending"
-                    : "Mark Complete"}
-                </button>
-
-                <button
-                  className="btn btn-danger"
-                  onClick={() => deleteTask(task.id)}
-                >
-                  Delete
-                </button>
 
               </div>
-
             </div>
+
           </div>
-        ))
-      )}
+
+        </div>
+
+      </div>
     </div>
   );
 }
